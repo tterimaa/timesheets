@@ -1,0 +1,20 @@
+{
+  "name": "timesheets",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prestart": "npm run build",
+    "start": "node --experimental-json-modules build/index.js"
+  },
+  "keywords": [],
+  "author": "tterimaa",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^16.9.6",
+    "typescript": "^4.4.3"
+  }
+}
