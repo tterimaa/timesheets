@@ -20,7 +20,7 @@ const COLUMNS = [
   DAYS_TO_COL.SATURDAY,
 ]
 const START_ROW = 4
-const GAP = 5
+const GAP = 5 // Minimum 5
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`
 const eveningHoursFormula = (start: string, finish: string) => `IF(${start}>18,${finish}-${start},IF(${finish}>18,${finish}-18,0))`
@@ -104,14 +104,18 @@ const writeWeekTotal = (sheet: Worksheet, columns: string[], row: number, col: s
   return [daySum.address, eveningSum.address]
 }
 
-const writeMonthlyTotals = (sheet: Worksheet, daySumCells: string[], eveningSumCells: string[]) => {
-  sheet.getCell('A1').value = { formula: totalSumFormula(daySumCells), date1904: false }
-  sheet.getCell('A2').value = { formula: totalSumFormula(eveningSumCells), date1904: false }
-  sheet.getCell('B1').value = 'Päivätuntia'
-  sheet.getCell('B2').value = 'Iltatuntia'
+const writeMonthlyTotals = (sheet: Worksheet, name: string, daySumCells: string[], eveningSumCells: string[]) => {
+  sheet.getCell('A2').value = { formula: totalSumFormula(daySumCells), date1904: false }
+  sheet.getCell('A3').value = { formula: totalSumFormula(eveningSumCells), date1904: false }
+  sheet.getCell('B2').value = 'Päivätuntia'
+  sheet.getCell('B3').value = 'Iltatuntia'
+  sheet.getCell('A1').value = name
+  sheet.getCell('A1').font = { size: 18 }
+  sheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' }
+  sheet.mergeCells('A1','B1')
 }
 
-const writeSheet = (sheet: Worksheet, firstDay: Date, lastDay: Date) => {
+const writeSheet = (sheet: Worksheet, name: string, firstDay: Date, lastDay: Date) => {
   const current = firstDay
   let row = START_ROW
   let columnsOfCurrentRow: string[] = []
@@ -135,15 +139,17 @@ const writeSheet = (sheet: Worksheet, firstDay: Date, lastDay: Date) => {
     }
     current.setDate(current.getDate() + 1)
   }
-  writeMonthlyTotals(sheet, daySumCells, eveningSumCells)
+  writeMonthlyTotals(sheet, name, daySumCells, eveningSumCells)
 }
 
-export const generateWorkBook = (month: number): Workbook => {
+export const generateWorkBook = (month: number, names: string[]): Workbook => {
   const workbook = new exceljs.Workbook()
   const [first, last] = getFirstAndLastDaysOfMonth(month)
-  const sheet = workbook.addWorksheet('Tarmo', {
+  for(const name of names) {
+  const sheet = workbook.addWorksheet(name, {
     properties: { defaultRowHeight: 20, defaultColWidth: 15 },
   })
-  writeSheet(sheet, first, last)
+  writeSheet(sheet, name, first, last)
+  }
   return workbook
 }
