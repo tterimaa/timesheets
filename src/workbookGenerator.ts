@@ -27,7 +27,8 @@ const eveningHoursFormula = (start: string, finish: string) => `IF(${start}>18,$
 const sumFormula = (columns: string[], row: number) => {
   const cells = columns.map(col => col + row)
   return cells.join('+')
-} 
+}
+const totalSumFormula = (cells: string[]) => cells.join('+')
 
 const getFirstAndLastDaysOfMonth = (month: number) => {
   const first = new Date(2021, month - 1) // Date API months range 0-11
@@ -100,12 +101,22 @@ const writeWeekTotal = (sheet: Worksheet, columns: string[], row: number, col: s
   eveningSum.value = { formula: sumFormula(columns, row + 4), date1904: false }
   const eveningSumText = sheet.getCell(getNthNextColumn(col, 1) + (row + 4))
   eveningSumText.value = 'Iltatuntia'
+  return [daySum.address, eveningSum.address]
+}
+
+const writeMonthlyTotals = (sheet: Worksheet, daySumCells: string[], eveningSumCells: string[]) => {
+  sheet.getCell('A1').value = { formula: totalSumFormula(daySumCells), date1904: false }
+  sheet.getCell('A2').value = { formula: totalSumFormula(eveningSumCells), date1904: false }
+  sheet.getCell('B1').value = 'Päivätuntia'
+  sheet.getCell('B2').value = 'Iltatuntia'
 }
 
 const writeSheet = (sheet: Worksheet, firstDay: Date, lastDay: Date) => {
   const current = firstDay
   let row = START_ROW
   let columnsOfCurrentRow: string[] = []
+  const daySumCells = []
+  const eveningSumCells = []
   while (current <= lastDay) {
     const col = resolveColumn(current)
     columnsOfCurrentRow.push(col)
@@ -116,12 +127,15 @@ const writeSheet = (sheet: Worksheet, firstDay: Date, lastDay: Date) => {
     writeDayHoursFunction(sheet, col, row)
     writeEveningHoursFunction(sheet, col, row)
     if (col === DAYS_TO_COL.SUNDAY) {
-      writeWeekTotal(sheet, columnsOfCurrentRow, row, getNthNextColumn(col, 2))
+      const [daySum, eveningSum] = writeWeekTotal(sheet, columnsOfCurrentRow, row, getNthNextColumn(col, 2))
+      daySumCells.push(daySum)
+      eveningSumCells.push(eveningSum)
       row = row + GAP
       columnsOfCurrentRow = []
     }
     current.setDate(current.getDate() + 1)
   }
+  writeMonthlyTotals(sheet, daySumCells, eveningSumCells)
 }
 
 export const generateWorkBook = (month: number): Workbook => {
