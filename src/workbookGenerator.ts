@@ -24,6 +24,7 @@ const GAP = 5 // Minimum 5
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`
 const eveningHoursFormula = (start: string, finish: string) => `IF(${start}>18,${finish}-${start},IF(${finish}>18,${finish}-18,0))`
+const allHoursFormula = (start: string, finish: string) => `${finish}-${start}`
 const sumFormula = (columns: string[], row: number) => {
   const cells = columns.map(col => col + row)
   return cells.join('+')
@@ -89,16 +90,16 @@ const writeEveningHoursFunction = (sheet: Worksheet, col: string, row: number) =
   sheet.mergeCells(col + (row + 4), getNthNextColumn(col, 1) + (row + 4))
 }
 
-const writeWeekTotal = (sheet: Worksheet, columns: string[], row: number, col: string) => {
+const writeWeekTotal = (sheet: Worksheet, dayColumns: string[], eveningColumns: string[], row: number, col: string) => {
   sheet.getCell(col + row).value = 'VIIKKO YHTEENSÄ'
   sheet.getCell(col + row).font = { size: 18 }
   sheet.mergeCells(col + row, getNthNextColumn(col, 3) + row)
   const daySum = sheet.getCell(col + (row + 3))
-  daySum.value = { formula: sumFormula(columns, row + 3), date1904: false }
+  daySum.value = { formula: sumFormula(dayColumns, row + 3), date1904: false }
   const daySumText = sheet.getCell(getNthNextColumn(col, 1) + (row + 3))
   daySumText.value = 'Päivätuntia'
   const eveningSum = sheet.getCell(col + (row + 4))
-  eveningSum.value = { formula: sumFormula(columns, row + 4), date1904: false }
+  eveningSum.value = { formula: sumFormula(eveningColumns, row + 4), date1904: false }
   const eveningSumText = sheet.getCell(getNthNextColumn(col, 1) + (row + 4))
   eveningSumText.value = 'Iltatuntia'
   return [daySum.address, eveningSum.address]
@@ -115,27 +116,41 @@ const writeMonthlyTotals = (sheet: Worksheet, name: string, daySumCells: string[
   sheet.mergeCells('A1','B1')
 }
 
+const writeAllHoursFunction = (sheet: Worksheet, col: string, row: number) => {
+  const cell = sheet.getCell(col + (row + 4))
+  const formula = allHoursFormula(col + (row + 2), getNthNextColumn(col, 1) + (row + 2))
+  cell.value = { formula , date1904: false, result: 0 }
+  sheet.mergeCells(col + (row + 4), getNthNextColumn(col, 1) + (row + 4))
+}
+
 const writeSheet = (sheet: Worksheet, name: string, firstDay: Date, lastDay: Date) => {
   const current = firstDay
   let row = START_ROW
-  let columnsOfCurrentRow: string[] = []
+  let dayHourColumnsOfCurrentRow: string[] = []
+  let eveningHourColumnsOfCurrentRow: string[] = []
   const daySumCells = []
   const eveningSumCells = []
   while (current <= lastDay) {
     const col = resolveColumn(current)
-    columnsOfCurrentRow.push(col)
+    eveningHourColumnsOfCurrentRow.push(col)
     const cell = sheet.getCell(col + row)
     writeDateCell(cell, current)
     styleDateCell(sheet, cell, col, row)
     writeStartFinish(sheet, col, row)
-    writeDayHoursFunction(sheet, col, row)
-    writeEveningHoursFunction(sheet, col, row)
+    if (col !== DAYS_TO_COL.SATURDAY && col !== DAYS_TO_COL.SUNDAY) {
+      dayHourColumnsOfCurrentRow.push(col)
+      writeDayHoursFunction(sheet, col, row)
+      writeEveningHoursFunction(sheet, col, row)
+    } else {
+      writeAllHoursFunction(sheet, col, row)
+    }
     if (col === DAYS_TO_COL.SUNDAY) {
-      const [daySum, eveningSum] = writeWeekTotal(sheet, columnsOfCurrentRow, row, getNthNextColumn(col, 2))
+      const [daySum, eveningSum] = writeWeekTotal(sheet, dayHourColumnsOfCurrentRow, eveningHourColumnsOfCurrentRow, row, getNthNextColumn(col, 2))
       daySumCells.push(daySum)
       eveningSumCells.push(eveningSum)
       row = row + GAP
-      columnsOfCurrentRow = []
+      dayHourColumnsOfCurrentRow = []
+      eveningHourColumnsOfCurrentRow = []
     }
     current.setDate(current.getDate() + 1)
   }
@@ -144,11 +159,11 @@ const writeSheet = (sheet: Worksheet, name: string, firstDay: Date, lastDay: Dat
 
 export const generateWorkBook = (month: number, names: string[]): Workbook => {
   const workbook = new exceljs.Workbook()
-  const [first, last] = getFirstAndLastDaysOfMonth(month)
   for(const name of names) {
   const sheet = workbook.addWorksheet(name, {
     properties: { defaultRowHeight: 20, defaultColWidth: 15 },
   })
+  const [first, last] = getFirstAndLastDaysOfMonth(month)
   writeSheet(sheet, name, first, last)
   }
   return workbook
