@@ -24,6 +24,10 @@ const GAP = 5
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`
 const eveningHoursFormula = (start: string, finish: string) => `IF(${start}>18,${finish}-${start},IF(${finish}>18,${finish}-18,0))`
+const sumFormula = (columns: string[], row: number) => {
+  const cells = columns.map(col => col + row)
+  return cells.join('+')
+} 
 
 const getFirstAndLastDaysOfMonth = (month: number) => {
   const first = new Date(2021, month - 1) // Date API months range 0-11
@@ -36,17 +40,17 @@ const resolveColumn = (date: Date) => {
   return COLUMNS[day]
 }
 
-const getNextColumn = (col: string) => {
+const getNthNextColumn = (col: string, n: number) => {
   if (col.length > 1) {
     console.error(
       'Next column can only be resolved for single character representing columns from A-Z'
     )
   }
   const char = col[0].toUpperCase()
-  if (char === 'Z') {
-    console.error('Can\'t resolve next column for last column ')
+  if (String.fromCharCode(char.charCodeAt(0) + n) > 'Z') {
+    console.error(`Can't resolve ${n}:th next column because it's greater than Z, which is the last column of the sheet`)
   }
-  return String.fromCharCode(col.charCodeAt(0) + 1)
+  return String.fromCharCode(col.charCodeAt(0) + n)
 }
 
 const writeDateCell = (cell: Cell, day: Date) => {
@@ -54,7 +58,7 @@ const writeDateCell = (cell: Cell, day: Date) => {
 }
 
 const styleDateCell = (sheet: Worksheet, cell: Cell, col: string, row: number) => {
-  const nextCol = getNextColumn(col)
+  const nextCol = getNthNextColumn(col, 1)
   sheet.mergeCells(col + row, nextCol + row)
   cell.alignment = { vertical: 'middle', horizontal: 'center' }
   cell.font = { size: 18 } 
@@ -62,7 +66,7 @@ const styleDateCell = (sheet: Worksheet, cell: Cell, col: string, row: number) =
 
 const writeStartFinish = (sheet: Worksheet, col: string, row: number) => {
   const start = sheet.getCell(col + (row + 1))
-  const finish = sheet.getCell(getNextColumn(col) + (row + 1))
+  const finish = sheet.getCell(getNthNextColumn(col, 1) + (row + 1))
   start.value = 'Alkaa'
   finish.value = 'Loppuu'
   const font = { size: 18 }
@@ -72,23 +76,39 @@ const writeStartFinish = (sheet: Worksheet, col: string, row: number) => {
 
 const writeDayHoursFunction = (sheet: Worksheet, col: string, row: number) => {
   const cell = sheet.getCell(col + (row + 3))
-  const formula = dayHoursFormula(col + (row + 2), getNextColumn(col) + (row + 2))
+  const formula = dayHoursFormula(col + (row + 2), getNthNextColumn(col, 1) + (row + 2))
   cell.value = { formula , date1904: false, result: 0 }
-  sheet.mergeCells(col + (row + 3), getNextColumn(col) + (row + 3))
+  sheet.mergeCells(col + (row + 3), getNthNextColumn(col, 1) + (row + 3))
 }
 
 const writeEveningHoursFunction = (sheet: Worksheet, col: string, row: number) => {
   const cell = sheet.getCell(col + (row + 4))
-  const formula = eveningHoursFormula(col + (row + 2), getNextColumn(col) + (row + 2))
+  const formula = eveningHoursFormula(col + (row + 2), getNthNextColumn(col, 1) + (row + 2))
   cell.value = { formula , date1904: false, result: 0 }
-  sheet.mergeCells(col + (row + 4), getNextColumn(col) + (row + 4))
+  sheet.mergeCells(col + (row + 4), getNthNextColumn(col, 1) + (row + 4))
+}
+
+const writeWeekTotal = (sheet: Worksheet, columns: string[], row: number, col: string) => {
+  sheet.getCell(col + row).value = 'VIIKKO YHTEENSÄ'
+  sheet.getCell(col + row).font = { size: 18 }
+  sheet.mergeCells(col + row, getNthNextColumn(col, 3) + row)
+  const daySum = sheet.getCell(col + (row + 3))
+  daySum.value = { formula: sumFormula(columns, row + 3), date1904: false }
+  const daySumText = sheet.getCell(getNthNextColumn(col, 1) + (row + 3))
+  daySumText.value = 'Päivätuntia'
+  const eveningSum = sheet.getCell(col + (row + 4))
+  eveningSum.value = { formula: sumFormula(columns, row + 4), date1904: false }
+  const eveningSumText = sheet.getCell(getNthNextColumn(col, 1) + (row + 4))
+  eveningSumText.value = 'Iltatuntia'
 }
 
 const writeSheet = (sheet: Worksheet, firstDay: Date, lastDay: Date) => {
   const current = firstDay
   let row = START_ROW
+  let columnsOfCurrentRow: string[] = []
   while (current <= lastDay) {
     const col = resolveColumn(current)
+    columnsOfCurrentRow.push(col)
     const cell = sheet.getCell(col + row)
     writeDateCell(cell, current)
     styleDateCell(sheet, cell, col, row)
@@ -96,7 +116,9 @@ const writeSheet = (sheet: Worksheet, firstDay: Date, lastDay: Date) => {
     writeDayHoursFunction(sheet, col, row)
     writeEveningHoursFunction(sheet, col, row)
     if (col === DAYS_TO_COL.SUNDAY) {
+      writeWeekTotal(sheet, columnsOfCurrentRow, row, getNthNextColumn(col, 2))
       row = row + GAP
+      columnsOfCurrentRow = []
     }
     current.setDate(current.getDate() + 1)
   }
