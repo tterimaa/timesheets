@@ -1,13 +1,13 @@
 import exceljs, { Workbook, Worksheet, Cell, } from 'exceljs'
 
 enum DAYS_TO_COL {
-  SUNDAY = 'O',
-  MONDAY = 'C',
-  TUESDAY = 'E',
-  WEDNESDAY = 'G',
-  THURSDAY = 'I',
-  FRIDAY = 'K',
-  SATURDAY = 'M',
+  SUNDAY = 'M',
+  MONDAY = 'A',
+  TUESDAY = 'C',
+  WEDNESDAY = 'E',
+  THURSDAY = 'G',
+  FRIDAY = 'I',
+  SATURDAY = 'K',
 }
 
 const COLUMNS = [
@@ -19,7 +19,7 @@ const COLUMNS = [
   DAYS_TO_COL.FRIDAY,
   DAYS_TO_COL.SATURDAY,
 ]
-const START_ROW = 4
+const START_ROW = 5
 const GAP = 5 // Minimum 5
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`
@@ -63,7 +63,7 @@ const styleDateCell = (sheet: Worksheet, cell: Cell, col: string, row: number) =
   const nextCol = getNthNextColumn(col, 1)
   sheet.mergeCells(col + row, nextCol + row)
   cell.alignment = { vertical: 'middle', horizontal: 'center' }
-  cell.font = { size: 18 } 
+  cell.font = { size: 16 } 
 }
 
 const writeStartFinish = (sheet: Worksheet, col: string, row: number) => {
@@ -71,9 +71,6 @@ const writeStartFinish = (sheet: Worksheet, col: string, row: number) => {
   const finish = sheet.getCell(getNthNextColumn(col, 1) + (row + 1))
   start.value = 'Alkaa'
   finish.value = 'Loppuu'
-  const font = { size: 18 }
-  start.font = font
-  finish.font = font
 }
 
 const writeDayHoursFunction = (sheet: Worksheet, col: string, row: number) => {
@@ -111,7 +108,6 @@ const writeMonthlyTotals = (sheet: Worksheet, name: string, daySumCells: string[
   sheet.getCell('B2').value = 'Päivätuntia'
   sheet.getCell('B3').value = 'Iltatuntia'
   sheet.getCell('A1').value = name
-  sheet.getCell('A1').font = { size: 18 }
   sheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' }
   sheet.mergeCells('A1','B1')
 }
@@ -160,9 +156,7 @@ const writeSheet = (sheet: Worksheet, name: string, firstDay: Date, lastDay: Dat
 export const generateWorkBook = (month: number, names: string[]): Workbook => {
   const workbook = new exceljs.Workbook()
   for(const name of names) {
-  const sheet = workbook.addWorksheet(name, {
-    properties: { defaultRowHeight: 20, defaultColWidth: 15 },
-  })
+  const sheet = workbook.addWorksheet(name)
   const [first, last] = getFirstAndLastDaysOfMonth(month)
   writeSheet(sheet, name, first, last)
   }
