@@ -21,6 +21,7 @@ const COLUMNS = [
 ]
 const START_ROW = 5
 const GAP = 5 // Minimum 5
+const ROWS_IN_UNIT = 5 // Number of rows in one unit (date + input + functions)
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`
 const eveningHoursFormula = (start: string, finish: string) => `IF(${start}>18,${finish}-${start},IF(${finish}>18,${finish}-18,0))`
@@ -59,12 +60,29 @@ const writeDateCell = (cell: Cell, day: Date) => {
   cell.value = day.toLocaleDateString('fi-FI', { weekday: 'short', month: 'numeric', day: 'numeric', year: 'numeric' })
 }
 
+const addBorders = (sheet: Worksheet, col: string, row: number) => {
+  const cell = sheet.getCell(col + row)
+  cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' }}
+  let i = 1
+  while(i < ROWS_IN_UNIT - 1) {
+    const leftCellBelow = sheet.getCell(col + (row + i))
+    leftCellBelow.border = { left: { style: 'thin' }}
+    const rightCellBelow = sheet.getCell(getNthNextColumn(col, 1) + (row + i))
+    rightCellBelow.border = { right: { style: 'thin' }}
+    i++
+  }
+  const bottomLeftCell = sheet.getCell(col + (row + i))
+  bottomLeftCell.border = { bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' }}
+}
+
 const styleDateCell = (sheet: Worksheet, cell: Cell, col: string, row: number) => {
   const nextCol = getNthNextColumn(col, 1)
   sheet.mergeCells(col + row, nextCol + row)
   cell.alignment = { vertical: 'middle', horizontal: 'center' }
-  cell.font = { size: 16 } 
+  cell.font = { size: 14 }
+  addBorders(sheet, col, row)
 }
+
 
 const writeStartFinish = (sheet: Worksheet, col: string, row: number) => {
   const start = sheet.getCell(col + (row + 1))
@@ -131,8 +149,8 @@ const writeSheet = (sheet: Worksheet, name: string, firstDay: Date, lastDay: Dat
     eveningHourColumnsOfCurrentRow.push(col)
     const cell = sheet.getCell(col + row)
     writeDateCell(cell, current)
-    styleDateCell(sheet, cell, col, row)
     writeStartFinish(sheet, col, row)
+    styleDateCell(sheet, cell, col, row)
     if (col !== DAYS_TO_COL.SATURDAY && col !== DAYS_TO_COL.SUNDAY) {
       dayHourColumnsOfCurrentRow.push(col)
       writeDayHoursFunction(sheet, col, row)
