@@ -1,27 +1,6 @@
 import exceljs, { Workbook, Worksheet, Cell, } from 'exceljs'
-
-enum DAYS_TO_COL {
-  SUNDAY = 'M',
-  MONDAY = 'A',
-  TUESDAY = 'C',
-  WEDNESDAY = 'E',
-  THURSDAY = 'G',
-  FRIDAY = 'I',
-  SATURDAY = 'K',
-}
-
-const COLUMNS = [
-  DAYS_TO_COL.SUNDAY,
-  DAYS_TO_COL.MONDAY,
-  DAYS_TO_COL.TUESDAY,
-  DAYS_TO_COL.WEDNESDAY,
-  DAYS_TO_COL.THURSDAY,
-  DAYS_TO_COL.FRIDAY,
-  DAYS_TO_COL.SATURDAY,
-]
-const START_ROW = 5
-const GAP = 5 // Minimum 5
-const ROWS_IN_UNIT = 5 // Number of rows in one unit (date + input + functions)
+import { getNthNextColumn, resolveColumn, writeDateCell, getFirstAndLastDaysOfMonth } from './utils.js'
+import { DAYS_TO_COL, START_ROW, GAP, ROWS_IN_UNIT } from './config.js'
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`
 const eveningHoursFormula = (start: string, finish: string) => `IF(${start}>18,${finish}-${start},IF(${finish}>18,${finish}-18,0))`
@@ -31,34 +10,6 @@ const sumFormula = (columns: string[], row: number) => {
   return cells.join('+')
 }
 const totalSumFormula = (cells: string[]) => cells.join('+')
-
-const getFirstAndLastDaysOfMonth = (month: number) => {
-  const first = new Date(2021, month - 1) // Date API months range 0-11
-  const last = new Date(2021, month, 0) // Day 0 gives last day of previous month
-  return [first, last]
-}
-
-const resolveColumn = (date: Date) => {
-  const day = date.getDay()
-  return COLUMNS[day]
-}
-
-const getNthNextColumn = (col: string, n: number) => {
-  if (col.length > 1) {
-    console.error(
-      'Next column can only be resolved for single character representing columns from A-Z'
-    )
-  }
-  const char = col[0].toUpperCase()
-  if (String.fromCharCode(char.charCodeAt(0) + n) > 'Z') {
-    console.error(`Can't resolve ${n}:th next column because it's greater than Z, which is the last column of the sheet`)
-  }
-  return String.fromCharCode(col.charCodeAt(0) + n)
-}
-
-const writeDateCell = (cell: Cell, day: Date) => {
-  cell.value = day.toLocaleDateString('fi-FI', { weekday: 'short', month: 'numeric', day: 'numeric', year: 'numeric' })
-}
 
 const addBorders = (sheet: Worksheet, col: string, row: number) => {
   const cell = sheet.getCell(col + row)
@@ -82,7 +33,6 @@ const styleDateCell = (sheet: Worksheet, cell: Cell, col: string, row: number) =
   cell.font = { size: 14 }
   addBorders(sheet, col, row)
 }
-
 
 const writeStartFinish = (sheet: Worksheet, col: string, row: number) => {
   const start = sheet.getCell(col + (row + 1))
