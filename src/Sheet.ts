@@ -1,4 +1,4 @@
-import { Worksheet } from 'exceljs';
+import { DataValidation, Worksheet } from 'exceljs';
 import { DAYS_TO_COL, ROWS_IN_UNIT } from './config.js';
 import Current from './Current.js';
 import { getNthNextColumn } from './utils.js';
@@ -44,6 +44,24 @@ class Sheet {
     );
     start.value = 'Alkaa';
     finish.value = 'Loppuu';
+  };
+
+  private writeInputDataValidation = () => {
+    const startInput = this.sheet.getCell(this.current.getCol() + (this.current.getRow() + 2));
+    const finishInput = this.sheet.getCell(
+      getNthNextColumn(this.current.getCol(), 1) + (this.current.getRow() + 2),
+    );
+    const validation: DataValidation = {
+      type: 'decimal',
+      operator: 'between',
+      showErrorMessage: true,
+      formulae: [0.0, 24.0],
+      errorStyle: 'error',
+      errorTitle: 'Virheellinen kellonaika',
+      error: 'Käytä pilkkua erottaessasi tunnit ja minuutit, esim. 16,5. Kellonaika täytyy olla välillä 0,0-24,0',
+    };
+    startInput.dataValidation = validation;
+    finishInput.dataValidation = validation;
   };
 
   private styleDateCell = () => {
@@ -161,6 +179,7 @@ class Sheet {
       eveningHourColumnsOfCurrentRow.push(this.current.getCol());
       this.writeCurrentDateCell();
       this.writeStartFinish();
+      this.writeInputDataValidation();
       this.styleDateCell();
       if (this.current.getCol() !== DAYS_TO_COL.SATURDAY
      && this.current.getCol() !== DAYS_TO_COL.SUNDAY) {
