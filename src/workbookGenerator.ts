@@ -9,6 +9,7 @@ const generateWorkBook = (month: number, names: string[]): Workbook => {
     const sheet = new Sheet(workbook.addWorksheet(name), name, first, last);
     sheet.writeCalendar();
     sheet.writeMonthlyTotals();
+    sheet.protect();
   });
   return workbook;
 };

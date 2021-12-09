@@ -62,6 +62,8 @@ class Sheet {
     };
     startInput.dataValidation = validation;
     finishInput.dataValidation = validation;
+    startInput.protection = { locked: false };
+    finishInput.protection = { locked: false };
   };
 
   private styleDateCell = () => {
@@ -221,6 +223,10 @@ class Sheet {
       horizontal: 'center',
     };
     this.sheet.mergeCells('A1', 'B1');
+  }
+
+  protect() {
+    this.sheet.protect('password', {});
   }
 }
 
