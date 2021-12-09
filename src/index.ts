@@ -1,4 +1,4 @@
-import { generateWorkBook } from './workbookGenerator.js'
+import generateWorkBook from './workbookGenerator.js';
 
-const workbook = generateWorkBook(10, ['John', 'Jane'])
-workbook.xlsx.writeFile('./workbooks/workbook.xlsx')
+const workbook = generateWorkBook(10, ['John', 'Jane']);
+workbook.xlsx.writeFile('./workbooks/workbook.xlsx');
