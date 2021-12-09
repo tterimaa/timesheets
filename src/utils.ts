@@ -1,8 +1,8 @@
 import { COLUMNS } from './config.js';
 
 export const getFirstAndLastDaysOfMonth = (month: number): Array<Date> => {
-  const first = new Date(2021, month - 1); // Date API months range 0-11
-  const last = new Date(2021, month, 0); // Day 0 gives last day of previous month
+  const first = new Date(2021, month); // Date API months range 0-11
+  const last = new Date(2021, month + 1, 0); // Day 0 gives last day of previous month
   return [first, last];
 };
 
