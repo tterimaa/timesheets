@@ -1,4 +1,4 @@
-import { COLUMNS } from './config.js';
+import { COLUMNS, configs, DAYS_TO_COL } from './config.js';
 
 export const getFirstAndLastDaysOfMonth = (month: number): Array<Date> => {
   const first = new Date(2021, month); // Date API months range 0-11
@@ -22,4 +22,15 @@ export const getNthNextColumn = (col: string, n: number): string => {
     console.error(`Can't resolve ${n}:th next column because it's greater than Z, which is the last column of the sheet`);
   }
   return String.fromCharCode(col.charCodeAt(0) + n);
+};
+
+export const getLastDayOfWeek = () => {
+  switch (configs.days) {
+    case 5:
+      return DAYS_TO_COL.FRIDAY;
+    case 6:
+      return DAYS_TO_COL.SATURDAY;
+    default:
+      return DAYS_TO_COL.SUNDAY;
+  }
 };

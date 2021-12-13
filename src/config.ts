@@ -17,6 +17,11 @@ export const COLUMNS = [
   DAYS_TO_COL.FRIDAY,
   DAYS_TO_COL.SATURDAY,
 ];
+
+export const configs = {
+  days: 7,
+};
+
 export const START_ROW = 5;
 export const GAP = 5; // Minimum 5
 export const ROWS_IN_UNIT = 5; // Number of rows in one unit (date + input + functions)

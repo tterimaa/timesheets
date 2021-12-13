@@ -1,7 +1,7 @@
 import { DataValidation, Worksheet } from 'exceljs';
 import { DAYS_TO_COL, ROWS_IN_UNIT } from './config.js';
 import Current from './Current.js';
-import { getNthNextColumn } from './utils.js';
+import { getLastDayOfWeek, getNthNextColumn } from './utils.js';
 import formulas from './formulas.js';
 
 class Sheet {
@@ -191,14 +191,13 @@ class Sheet {
       } else {
         this.writeAllHoursFunction();
       }
-      if (this.current.getCol() === DAYS_TO_COL.SUNDAY) {
+      if (this.current.getCol() === getLastDayOfWeek()) {
         const [daySum, eveningSum] = this.writeWeekTotal(
           dayHourColumnsOfCurrentRow,
           eveningHourColumnsOfCurrentRow,
         );
         this.daySumCells.push(daySum);
         this.eveningSumCells.push(eveningSum);
-        this.current.incrementRow();
         dayHourColumnsOfCurrentRow = [];
         eveningHourColumnsOfCurrentRow = [];
       }
