@@ -6,21 +6,21 @@ import { getLastDayOfWeek, getNthNextColumn } from './utils.js';
 import formulas from './formulas.js';
 
 class Sheet {
-  sheet: Worksheet;
+  private sheet: Worksheet;
 
-  name: string;
+  private name: string;
 
-  first: Date;
+  private first: Date;
 
-  last: Date;
+  private last: Date;
 
-  daySumCells: string[] = [];
+  private daySumCells: string[] = [];
 
-  eveningSumCells: string[] = [];
+  private eveningSumCells: string[] = [];
 
-  current: Current;
+  private current: Current;
 
-  configs: Configs;
+  private configs: Configs;
 
   constructor(worksheet: Worksheet, name: string, first: Date, last: Date, configs: Configs) {
     this.sheet = worksheet;
