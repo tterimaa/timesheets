@@ -7,6 +7,7 @@
   "plugins": ["@typescript-eslint"],
   "extends": ["airbnb-base", "airbnb-typescript/base"],
   "rules": {
+    "max-len": "off",
     "no-unused-vars": "off",
     "no-console": "off",
     "@typescript-eslint/no-unused-vars": "error",
