@@ -1,4 +1,4 @@
-import generateWorkBook from './workbook/generator.js';
+import generateWorkBook from './generator.js';
 import { getConfigs } from './config.js';
 
 const months = [0, 1];

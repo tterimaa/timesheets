@@ -2,7 +2,7 @@ import { resolveColumn } from './utils.js';
 import {
   GAP, START_ROW,
   DAYS_TO_COL,
-} from '../config.js';
+} from './config.js';
 
 class Current {
   private row: number;

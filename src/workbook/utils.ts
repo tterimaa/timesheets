@@ -1,4 +1,4 @@
-import { COLUMNS, DAYS_TO_COL } from '../config.js';
+import { COLUMNS, DAYS_TO_COL } from './config.js';
 
 export const getFirstAndLastDaysOfMonth = (month: number): Array<Date> => {
   const date = new Date();

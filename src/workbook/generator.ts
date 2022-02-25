@@ -1,7 +1,7 @@
 import exceljs, { Workbook } from 'exceljs';
 import { getFirstAndLastDaysOfMonth } from './utils.js';
 import Sheet from './sheet.js';
-import { Configs } from '../config.js';
+import { Configs } from './config.js';
 
 const generateWorkBook = (month: number, names: string[], configs: Configs): Workbook => {
   const workbook = new exceljs.Workbook();

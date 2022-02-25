@@ -1,6 +1,6 @@
 import { DataValidation, Worksheet } from 'exceljs';
-import { Configs } from '../config';
-import { DAYS_TO_COL, ROWS_IN_UNIT } from '../config.js';
+import { Configs } from './config';
+import { DAYS_TO_COL, ROWS_IN_UNIT } from './config.js';
 import Current from './current.js';
 import { getLastDayOfWeek, getNthNextColumn } from './utils.js';
 import formulas from './formulas.js';
