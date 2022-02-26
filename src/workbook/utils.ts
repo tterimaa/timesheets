@@ -25,13 +25,27 @@ export const getNthNextColumn = (col: string, n: number): string => {
   return String.fromCharCode(col.charCodeAt(0) + n);
 };
 
-export const getLastDayOfWeek = (days: number) => {
+/*
+  Returns array of columns, that will cause a line break on a given configuration
+*/
+export const getLastDayOfWeek = (days: number): string[] => {
   switch (days) {
     case 5:
-      return DAYS_TO_COL.FRIDAY;
+      return [DAYS_TO_COL.FRIDAY, DAYS_TO_COL.SATURDAY, DAYS_TO_COL.SUNDAY].map((value) => value.toString());
     case 6:
-      return DAYS_TO_COL.SATURDAY;
+      return [DAYS_TO_COL.SATURDAY, DAYS_TO_COL.SUNDAY].map((value) => value.toString());
     default:
-      return DAYS_TO_COL.SUNDAY;
+      return [DAYS_TO_COL.SUNDAY].map((value) => value.toString());
+  }
+};
+
+export const getExcludedColumns = (days: number): string[] => {
+  switch (days) {
+    case 5:
+      return [DAYS_TO_COL.SATURDAY, DAYS_TO_COL.SUNDAY].map((value) => value.toString());
+    case 6:
+      return [DAYS_TO_COL.SUNDAY].map((value) => value.toString());
+    default:
+      return [];
   }
 };

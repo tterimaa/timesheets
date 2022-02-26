@@ -2,7 +2,7 @@ import { DataValidation, Worksheet } from 'exceljs';
 import { Configs } from './config';
 import { DAYS_TO_COL, ROWS_IN_UNIT } from './config.js';
 import Current from './current.js';
-import { getLastDayOfWeek, getNthNextColumn } from './utils.js';
+import { getExcludedColumns, getLastDayOfWeek, getNthNextColumn } from './utils.js';
 import formulas from './formulas.js';
 
 class Sheet {
@@ -182,29 +182,32 @@ class Sheet {
     let dayHourColumnsOfCurrentRow: string[] = [];
     let eveningHourColumnsOfCurrentRow: string[] = [];
     while (this.current.getDay() <= this.last) {
-      eveningHourColumnsOfCurrentRow.push(this.current.getCol());
-      this.writeCurrentDateCell();
-      this.writeStartFinish();
-      this.writeInputDataValidation();
-      this.styleDateCell();
-      if (this.current.getCol() !== DAYS_TO_COL.SATURDAY
+      if (!getExcludedColumns(this.configs.days).includes(this.current.getCol())) {
+        eveningHourColumnsOfCurrentRow.push(this.current.getCol());
+        this.writeCurrentDateCell();
+        this.writeStartFinish();
+        this.writeInputDataValidation();
+        this.styleDateCell();
+        if (this.current.getCol() !== DAYS_TO_COL.SATURDAY
      && this.current.getCol() !== DAYS_TO_COL.SUNDAY) {
-        dayHourColumnsOfCurrentRow.push(this.current.getCol());
-        this.writeDayHoursFunction();
-        this.writeEveningHoursFunction();
-      } else {
-        this.writeAllHoursFunction();
+          dayHourColumnsOfCurrentRow.push(this.current.getCol());
+          this.writeDayHoursFunction();
+          this.writeEveningHoursFunction();
+        } else {
+          this.writeAllHoursFunction();
+        }
+        if (getLastDayOfWeek(this.configs.days).includes(this.current.getCol())) {
+          const [daySum, eveningSum] = this.writeWeekTotal(
+            dayHourColumnsOfCurrentRow,
+            eveningHourColumnsOfCurrentRow,
+          );
+          this.daySumCells.push(daySum);
+          this.eveningSumCells.push(eveningSum);
+          dayHourColumnsOfCurrentRow = [];
+          eveningHourColumnsOfCurrentRow = [];
+        }
       }
-      if (this.current.getCol() === getLastDayOfWeek(this.configs.days)) {
-        const [daySum, eveningSum] = this.writeWeekTotal(
-          dayHourColumnsOfCurrentRow,
-          eveningHourColumnsOfCurrentRow,
-        );
-        this.daySumCells.push(daySum);
-        this.eveningSumCells.push(eveningSum);
-        dayHourColumnsOfCurrentRow = [];
-        eveningHourColumnsOfCurrentRow = [];
-      }
+
       this.current.incrementDay(this.configs.days);
     }
   }
