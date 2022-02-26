@@ -26,8 +26,16 @@ export interface Configs {
   days: number
 }
 
-export const getConfigs = (daysParam: number | null): Configs => {
-  const days = !daysParam ? 7 : daysParam;
+export interface ConfigsInput {
+  days?: number;
+}
+
+const defaultConfig = {
+  days: 7,
+};
+
+export const getConfigs = (configsInput: ConfigsInput | undefined): Configs => {
+  const days = !configsInput?.days ? defaultConfig.days : configsInput.days;
   return {
     days,
   };

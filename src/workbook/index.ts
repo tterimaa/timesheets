@@ -2,7 +2,7 @@ import generateWorkBook from './generator.js';
 import { getConfigs } from './config.js';
 
 const months = [0, 1];
-const configs = getConfigs(6);
+const configs = getConfigs({ days: 6 });
 
 months.forEach((month) => {
   const date = new Date();

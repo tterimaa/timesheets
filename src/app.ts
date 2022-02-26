@@ -1,11 +1,13 @@
 import express from 'express';
-import api from './api/index.js';
+import routes from './api/routes.js';
+import middleware from './api/middleware.js';
 
 const PORT = 8080;
 
 async function startServer() {
   const app = express();
-  api(app);
+  middleware(app);
+  routes(app);
   app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
 }
 
