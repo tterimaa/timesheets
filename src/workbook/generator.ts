@@ -1,18 +1,23 @@
 import exceljs, { Workbook } from 'exceljs';
+import { getDaySupplementorFunc, getRowResolverFunc, getRowResolver } from './resolvers.js';
 import { getFirstAndLastDaysOfMonth } from './utils.js';
-import Sheet from './sheet.js';
-import { Configs } from './config.js';
+import { Configs, GAP, START_ROW } from './config.js';
+import { writeCalendar, writeMonthlyTotal } from './writer.js';
 
-const generateWorkBook = (month: number, names: string[], configs: Configs): Workbook => {
-  const workbook = new exceljs.Workbook();
+export interface TotalHours {
+  dayHours: Array<string>;
+  eveningHours: Array<string>;
+}
+
+const generateWb = (month: number, names: string[], config: Configs): Workbook => {
+  const wb = new exceljs.Workbook();
   const [first, last] = getFirstAndLastDaysOfMonth(month);
-  const sheets = names.map((name) => new Sheet(workbook.addWorksheet(name), name, first, last, configs));
-  sheets.forEach((sheet) => {
-    sheet.writeCalendar();
-    sheet.writeMonthlyTotals();
-    sheet.protect();
+  const rowResolver = getRowResolver(getDaySupplementorFunc(first.getDay()), getRowResolverFunc(START_ROW, GAP));
+  names.forEach((name) => {
+    const { sheet, hours } = writeCalendar(wb.addWorksheet(name), first, last.getDate(), config, rowResolver, { dayHours: [], eveningHours: [] });
+    writeMonthlyTotal(sheet, hours, name);
   });
-  return workbook;
+  return wb;
 };
 
-export default generateWorkBook;
+export default generateWb;
