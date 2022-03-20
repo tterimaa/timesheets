@@ -1,23 +1,15 @@
-/* eslint-disable no-param-reassign */
 import { DataValidation, Worksheet } from 'exceljs';
-import { columnResolver } from './resolvers.js';
+import { getNeighbourCell, getColAndRow } from './utils.js';
 import {
-  ROWS_IN_UNIT, Configs,
-} from './config.js';
-import { totalSumFormula, writeDayHours, writeEveningHours } from './formulas.js';
-import {
-  getNthNextColumn, getExcludedColumns,
-} from './utils.js';
+  totalSumFormula, writeFormula,
+} from './formulas.js';
 import { TotalHours } from './generator.js';
-import {
-  BLOCK_HEADER_FORMAT, dayHoursCell, eveningHoursCell, totalDayHoursCell, totalEveningHoursCell,
-} from './block.js';
+import { Block } from './block.js';
+import { Formula } from './config.js';
 
-const writeInputDataValidation = (sheet: Worksheet, col: string, row: number) => {
-  const startInput = sheet.getCell(col + (row + 2));
-  const finishInput = sheet.getCell(
-    getNthNextColumn(col, 1) + (row + 2),
-  );
+const writeInputDataValidation = (sheet: Worksheet, cell: string) => {
+  const startInput = sheet.getCell(getNeighbourCell(cell, 0, 2));
+  const finishInput = sheet.getCell(getNeighbourCell(cell, 1, 2));
   const validation: DataValidation = {
     type: 'decimal',
     operator: 'between',
@@ -33,84 +25,34 @@ const writeInputDataValidation = (sheet: Worksheet, col: string, row: number) =>
   finishInput.protection = { locked: false };
 };
 
-const writeStartFinish = (sheet: Worksheet, col: string, row: number) => {
-  const start = sheet.getCell(col + (row + 1));
-  const finish = sheet.getCell(getNthNextColumn(col, 1) + (row + 1));
+const writeStartFinish = (sheet: Worksheet, cell: string) => {
+  const start = sheet.getCell(getNeighbourCell(cell, 0, 1));
+  const finish = sheet.getCell(getNeighbourCell(cell, 1, 1));
   start.value = 'Alkaa';
   finish.value = 'Loppuu';
 };
 
-const addBorders = (sheet: Worksheet, col: string, row: number) => {
-  const cell = sheet.getCell(col + row);
-  cell.border = {
-    top: { style: 'thin' },
-    left: { style: 'thin' },
-    right: { style: 'thin' },
-  };
-  let i = 1;
-  while (i < ROWS_IN_UNIT - 1) {
-    const leftCellBelow = sheet.getCell(col + (row + i));
-    leftCellBelow.border = { left: { style: 'thin' } };
-    const rightCellBelow = sheet.getCell(getNthNextColumn(col, 1) + (row + i));
-    rightCellBelow.border = { right: { style: 'thin' } };
-    // eslint-disable-next-line no-plusplus
-    i++;
-  }
-  const bottomLeftCell = sheet.getCell(col + (row + i));
-  bottomLeftCell.border = {
-    bottom: { style: 'thin' },
-    left: { style: 'thin' },
-    right: { style: 'thin' },
-  };
+const writeFormulas = (sheet: Worksheet, cell: string, formulas: Array<Formula>) => {
+  formulas.forEach((formula, i) => {
+    if (!formula.disabledForCols.includes(getColAndRow(cell)[0])) {
+      writeFormula(sheet, cell, formula.function, i);
+    }
+  });
 };
 
-const styleDateCell = (sheet: Worksheet, col: string, row: number) => {
-  const nextCol = getNthNextColumn(col, 1);
-  sheet.mergeCells(col + row, nextCol + row);
-  sheet.getCell(col + row).alignment = {
-    vertical: 'middle',
-    horizontal: 'center',
-  };
-  sheet.getCell(col + row).font = { size: 14 };
-  addBorders(sheet, col, row);
-};
-
-const writeFormulas = (sheet: Worksheet, col: string, row: number) => {
-  const dayHourCol = writeDayHours(sheet, col, row);
-  const eveningHourCol = writeEveningHours(sheet, col, row);
-  return { dayHourCol, eveningHourCol };
-};
-
-const writeBlock = (sheet: Worksheet, col: string, row: number, value: string) => {
-  sheet.getCell(col + row).value = value;
-  writeStartFinish(sheet, col, row);
-  writeInputDataValidation(sheet, col, row);
-  styleDateCell(sheet, col, row);
-  writeFormulas(sheet, col, row);
-  return sheet;
-};
-
-const writeCalendar = (sheet: Worksheet, current: Date, last: number, config: Configs, getRow: (date: number) => number, hours: TotalHours): { sheet: Worksheet, hours: TotalHours } => {
-  const currentDate = current.getDate();
-  const nextDate = new Date(current.getFullYear(), current.getMonth(), current.getDate() + 1);
-  const col = columnResolver(current.getDay());
-  if (!getExcludedColumns(config.days).includes(col)) {
-    const row = getRow(current.getDate());
-    const value = current.toLocaleDateString('fi-FI', BLOCK_HEADER_FORMAT);
-    const mutatedSheet = writeBlock(sheet, col, row, value);
-    const hourCols = { dayHours: dayHoursCell(col, row), eveningHours: eveningHoursCell(col, row) };
-    const newHours: TotalHours = { dayHours: [...hours.dayHours, hourCols.dayHours], eveningHours: [...hours.eveningHours, hourCols.eveningHours] };
-    return (currentDate === last) ? { sheet: mutatedSheet, hours: newHours } : writeCalendar(mutatedSheet, nextDate, last, config, getRow, newHours);
-  }
-  return (currentDate === last) ? { sheet, hours } : writeCalendar(sheet, nextDate, last, config, getRow, hours);
+const writeBlock = (sheet: Worksheet, block: Block, formulas: Array<Formula>) => {
+  sheet.getCell(block.headerCell).value = block.header;
+  writeStartFinish(sheet, block.headerCell);
+  writeInputDataValidation(sheet, block.headerCell);
+  writeFormulas(sheet, block.headerCell, formulas);
 };
 
 const writeMonthlyTotal = (sheet: Worksheet, hours: TotalHours, name: string) => {
-  sheet.getCell(totalDayHoursCell).value = {
+  sheet.getCell('A2').value = {
     formula: totalSumFormula(hours.dayHours),
     date1904: false,
   };
-  sheet.getCell(totalEveningHoursCell).value = {
+  sheet.getCell('A3').value = {
     formula: totalSumFormula(hours.eveningHours),
     date1904: false,
   };
@@ -124,4 +66,4 @@ const writeMonthlyTotal = (sheet: Worksheet, hours: TotalHours, name: string) =>
   sheet.mergeCells('A1', 'B1');
 };
 
-export { writeMonthlyTotal, writeCalendar };
+export { writeMonthlyTotal, writeBlock };
