@@ -1,6 +1,17 @@
 import { Worksheet } from 'exceljs';
-import { FormulaFunction } from './config.js';
 import { getNeighbourCell } from './utils.js';
+
+export type FormulaFunction = (start: string, finish: string) => string;
+
+export const enum FORMULA_TYPE {
+  DAY = 'DAY',
+  EVENING = 'EVENING',
+  ALL = 'ALL',
+}
+
+export interface FormulaInput {
+  type: FORMULA_TYPE;
+}
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`;
 const eveningHoursFormula = (start: string, finish: string) => `IF(${start}>18,${finish}-${start},IF(${finish}>18,${finish}-18,0))`;

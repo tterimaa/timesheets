@@ -1,4 +1,7 @@
-import { dayHoursFormula, eveningHoursFormula } from './formulas.js';
+import {
+  allHoursFormula,
+  dayHoursFormula, eveningHoursFormula, FormulaFunction, FormulaInput, FORMULA_TYPE,
+} from './formulas.js';
 
 export enum DAYS_TO_COL {
   SUNDAY = 'M',
@@ -22,8 +25,6 @@ export const COLUMNS = [
 
 export const START_ROW = 5;
 
-export type FormulaFunction = (start: string, finish: string) => string;
-
 export interface Formula {
   id: number,
   function: FormulaFunction
@@ -38,7 +39,7 @@ export interface Configs {
 
 export interface ConfigsInput {
   days?: number;
-  formulas?: Array<Formula>;
+  formulas?: Array<FormulaInput>;
 }
 
 const defaultConfig = {
@@ -57,9 +58,24 @@ const defaultConfig = {
   ],
 };
 
+const getFormula = (type: FORMULA_TYPE) => {
+  switch (type) {
+    case FORMULA_TYPE.DAY:
+      return dayHoursFormula;
+    case FORMULA_TYPE.EVENING:
+      return eveningHoursFormula;
+    case FORMULA_TYPE.ALL:
+      return allHoursFormula;
+    default:
+      throw Error('Unknown formula type: should be DAY, EVENING or ALL');
+  }
+};
+
+const getFormulas = (input: Array<FormulaInput>): Array<Formula> => input.map((f, i) => ({ id: i, function: getFormula(f.type), disabledForCols: [] }));
+
 export const getConfigs = (configsInput: ConfigsInput | undefined): Configs => {
   const days = !configsInput?.days ? defaultConfig.days : configsInput.days;
-  const formulas = !configsInput?.formulas ? defaultConfig.formulas : configsInput.formulas;
+  const formulas = !configsInput?.formulas ? defaultConfig.formulas : getFormulas(configsInput.formulas);
   const gap = formulas.length + 3;
   return {
     days,
