@@ -3,7 +3,6 @@ import { getNeighbourCell, getColAndRow } from './utils.js';
 import {
   totalSumFormula, writeFormula,
 } from './formulas.js';
-import { TotalHours } from './generator.js';
 import { Block } from './block.js';
 import { Formula } from './config.js';
 
@@ -47,23 +46,17 @@ const writeBlock = (sheet: Worksheet, block: Block, formulas: Array<Formula>) =>
   writeFormulas(sheet, block.headerCell, formulas);
 };
 
-const writeMonthlyTotal = (sheet: Worksheet, hours: TotalHours, name: string) => {
-  sheet.getCell('A2').value = {
-    formula: totalSumFormula(hours.dayHours),
-    date1904: false,
-  };
-  sheet.getCell('A3').value = {
-    formula: totalSumFormula(hours.eveningHours),
-    date1904: false,
-  };
-  sheet.getCell('B2').value = 'Päivätuntia';
-  sheet.getCell('B3').value = 'Iltatuntia';
-  sheet.getCell('A1').value = name;
-  sheet.getCell('A1').alignment = {
-    vertical: 'middle',
-    horizontal: 'center',
-  };
-  sheet.mergeCells('A1', 'B1');
+interface FormulaToOutputCells {
+  name: string,
+  cells: Array<string>,
+}
+
+const writeTotalHours = (sheet: Worksheet, name: string, cell: string, formulaToOutputCells: Array<FormulaToOutputCells>) => {
+  sheet.getCell(cell).value = name;
+  formulaToOutputCells.forEach((f, i) => {
+    sheet.getCell(getNeighbourCell(cell, 0, i + 1)).value = { formula: totalSumFormula(f.cells), date1904: false };
+    sheet.getCell(getNeighbourCell(cell, 1, i + 1)).value = f.name;
+  });
 };
 
-export { writeMonthlyTotal, writeBlock };
+export { writeTotalHours, writeBlock };

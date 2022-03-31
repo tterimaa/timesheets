@@ -23,10 +23,12 @@ export const COLUMNS = [
   DAYS_TO_COL.SATURDAY,
 ];
 
-export const START_ROW = 5;
+const START_ROW = 5;
+const TITLE_CELL = 'A1';
 
 export interface Formula {
   id: number,
+  name: string,
   function: FormulaFunction
   disabledForCols: string[]
 }
@@ -35,6 +37,8 @@ export interface Configs {
   days: number;
   formulas: Array<Formula>;
   gap: number;
+  startRow: number,
+  titleCell: string,
 }
 
 export interface ConfigsInput {
@@ -47,11 +51,13 @@ const defaultConfig = {
   formulas: [
     {
       id: 0,
+      name: 'Päivätunnit',
       function: dayHoursFormula,
       disabledForCols: [],
     },
     {
       id: 1,
+      name: 'Iltatunnit',
       function: eveningHoursFormula,
       disabledForCols: [],
     },
@@ -71,15 +77,21 @@ const getFormula = (type: FORMULA_TYPE) => {
   }
 };
 
-const getFormulas = (input: Array<FormulaInput>): Array<Formula> => input.map((f, i) => ({ id: i, function: getFormula(f.type), disabledForCols: [] }));
+const getFormulas = (input: Array<FormulaInput>): Array<Formula> => input.map((f, i) => ({
+  id: i, function: getFormula(f.type), name: f.name, disabledForCols: [],
+}));
 
 export const getConfigs = (configsInput: ConfigsInput | undefined): Configs => {
   const days = !configsInput?.days ? defaultConfig.days : configsInput.days;
   const formulas = !configsInput?.formulas ? defaultConfig.formulas : getFormulas(configsInput.formulas);
   const gap = formulas.length + 3;
+  const startRow = START_ROW;
+  const titleCell = TITLE_CELL;
   return {
     days,
     formulas,
     gap,
+    startRow,
+    titleCell,
   };
 };
