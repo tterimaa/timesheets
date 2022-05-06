@@ -11,7 +11,8 @@ export const enum FORMULA_TYPE {
 
 export interface FormulaInput {
   type: FORMULA_TYPE;
-  name: string
+  name: string;
+  disabledForCols: string[];
 }
 
 const dayHoursFormula = (start: string, finish: string) => `IF(${start}>18,0,IF(${finish}<=18,${finish}-${start},IF(${finish}>18,18-${start},0)))`;

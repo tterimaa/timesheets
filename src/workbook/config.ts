@@ -78,7 +78,7 @@ const getFormula = (type: FORMULA_TYPE) => {
 };
 
 const getFormulas = (input: Array<FormulaInput>): Array<Formula> => input.map((f, i) => ({
-  id: i, function: getFormula(f.type), name: f.name, disabledForCols: [],
+  id: i, function: getFormula(f.type), name: f.name, disabledForCols: f.disabledForCols ? f.disabledForCols : [],
 }));
 
 export const getConfigs = (configsInput: ConfigsInput | undefined): Configs => {
