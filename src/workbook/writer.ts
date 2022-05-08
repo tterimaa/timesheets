@@ -15,8 +15,8 @@ const writeInputDataValidation = (sheet: Worksheet, cell: string) => {
     showErrorMessage: true,
     formulae: [0.0, 24.0],
     errorStyle: 'error',
-    errorTitle: 'Virheellinen kellonaika',
-    error: 'Käytä pilkkua erottaessasi tunnit ja minuutit, esim. 16,5. Kellonaika täytyy olla välillä 0,0-24,0',
+    errorTitle: 'Wrong time',
+    error: 'Use comma "," for separating hours and minutes, e.g. 16,5. Time must be between 0,0-24,0',
   };
   startInput.dataValidation = validation;
   finishInput.dataValidation = validation;
@@ -24,11 +24,11 @@ const writeInputDataValidation = (sheet: Worksheet, cell: string) => {
   finishInput.protection = { locked: false };
 };
 
-const writeStartFinish = (sheet: Worksheet, cell: string) => {
+const writeStartFinish = (sheet: Worksheet, cell: string, startHeader: string, endHeader: string) => {
   const start = sheet.getCell(getNeighbourCell(cell, 0, 1));
   const finish = sheet.getCell(getNeighbourCell(cell, 1, 1));
-  start.value = 'Alkaa';
-  finish.value = 'Loppuu';
+  start.value = startHeader;
+  finish.value = endHeader;
 };
 
 const writeFormulas = (sheet: Worksheet, cell: string, formulas: Array<Formula>) => {
@@ -39,9 +39,9 @@ const writeFormulas = (sheet: Worksheet, cell: string, formulas: Array<Formula>)
   });
 };
 
-const writeBlock = (sheet: Worksheet, block: Block, formulas: Array<Formula>) => {
+const writeBlock = (sheet: Worksheet, block: Block, formulas: Array<Formula>, startHeader: string, endHeader: string) => {
   sheet.getCell(block.headerCell).value = block.header;
-  writeStartFinish(sheet, block.headerCell);
+  writeStartFinish(sheet, block.headerCell, startHeader, endHeader);
   writeInputDataValidation(sheet, block.headerCell);
   writeFormulas(sheet, block.headerCell, formulas);
 };

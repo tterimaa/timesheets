@@ -26,7 +26,10 @@ export const COLUMNS = [
 const START_ROW = 5;
 const TITLE_CELL = 'A1';
 const SUMMARY_START_CELL = 'A2';
-const TOTALS_START_CELL = 'K1';
+const TOTALS_START_CELL = 'F1';
+const START_HEADER = 'Start';
+const END_HEADER = 'Finish';
+const LOCALE = 'en-US';
 
 export interface Formula {
   id: number,
@@ -43,11 +46,14 @@ export interface Aggregator {
 export interface Configs {
   days: number;
   formulas: Array<Formula>;
+  startHeader: string,
+  endHeader: string,
   gap: number;
   startRow: number,
   titleCell: string,
   totalsStartCell: string,
   summary: Summary
+  locale: string,
 }
 
 interface Summary {
@@ -58,7 +64,10 @@ interface Summary {
 export interface ConfigsInput {
   days?: number;
   formulas?: Array<FormulaInput>;
-  summary: Summary
+  startHeader?: string,
+  endHeader?: string,
+  summary?: Summary
+  locale?: string
 }
 
 const defaultConfig = {
@@ -66,13 +75,13 @@ const defaultConfig = {
   formulas: [
     {
       id: 0,
-      name: 'Päivätunnit',
+      name: 'Day hours',
       function: dayHoursFormula,
       disabledForCols: [],
     },
     {
       id: 1,
-      name: 'Iltatunnit',
+      name: 'Evening hours',
       function: eveningHoursFormula,
       disabledForCols: [],
     },
@@ -100,19 +109,25 @@ export const getConfigs = (configsInput: ConfigsInput | undefined): Configs => {
   const days = !configsInput?.days ? defaultConfig.days : configsInput.days;
   const formulas = !configsInput?.formulas ? defaultConfig.formulas : getFormulas(configsInput.formulas);
   const gap = formulas.length + 3;
+  const startHeader = configsInput?.startHeader ? configsInput.startHeader : START_HEADER;
+  const endHeader = configsInput?.endHeader ? configsInput.endHeader : END_HEADER;
   const startRow = START_ROW;
   const titleCell = TITLE_CELL;
   const totalsStartCell = TOTALS_START_CELL;
   const summaryStartCell = SUMMARY_START_CELL;
-  const aggregators = configsInput?.summary.aggregators ? configsInput.summary.aggregators : [];
+  const aggregators = configsInput?.summary?.aggregators ? configsInput.summary.aggregators : [];
   const summary = { startCell: summaryStartCell, aggregators };
+  const locale = configsInput?.locale ? configsInput.locale : LOCALE;
   return {
     days,
     formulas,
+    startHeader,
+    endHeader,
     gap,
     startRow,
     titleCell,
     totalsStartCell,
     summary,
+    locale,
   };
 };

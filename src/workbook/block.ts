@@ -34,13 +34,13 @@ export const BLOCK_HEADER_FORMAT: Intl.DateTimeFormatOptions = {
   year: 'numeric',
 };
 
-export const getBlocksForTheMonth = (date: Date, last: number, rowResolver: (date: number) => number, blocks: Array<Block>, excludedCols: string[], formulas: Array<Formula>): Array<Block> => {
+export const getBlocksForTheMonth = (date: Date, last: number, rowResolver: (date: number) => number, blocks: Array<Block>, excludedCols: string[], formulas: Array<Formula>, locale: string): Array<Block> => {
   const col = columnResolver(date.getDay());
   const row = rowResolver(date.getDate());
   const headerCell = (col + row);
   const newBlock = {
     headerCell,
-    header: date.toLocaleDateString('fi-FI', BLOCK_HEADER_FORMAT),
+    header: date.toLocaleDateString(locale, BLOCK_HEADER_FORMAT),
     startCell: getNeighbourCell(headerCell, 0, 1),
     finishCell: getNeighbourCell(headerCell, 1, 1),
     startInputCell: getNeighbourCell(headerCell, 0, 2),
@@ -53,6 +53,6 @@ export const getBlocksForTheMonth = (date: Date, last: number, rowResolver: (dat
   }
   const nextDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
   return isColExcluded
-    ? getBlocksForTheMonth(nextDate, last, rowResolver, [...blocks], excludedCols, formulas)
-    : getBlocksForTheMonth(nextDate, last, rowResolver, [...blocks, newBlock], excludedCols, formulas);
+    ? getBlocksForTheMonth(nextDate, last, rowResolver, [...blocks], excludedCols, formulas, locale)
+    : getBlocksForTheMonth(nextDate, last, rowResolver, [...blocks, newBlock], excludedCols, formulas, locale);
 };
