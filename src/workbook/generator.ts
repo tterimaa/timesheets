@@ -3,7 +3,8 @@ import { getDaySupplementorFunc, getRowResolverFunc, getRowResolver } from './re
 import { getExcludedColumns, getFirstAndLastDaysOfMonth } from './utils.js';
 import { Configs } from './config.js';
 import {
-  writeBlock, writeTotalHours,
+  getTotalHoursCells,
+  writeBlock, writeSummary, writeTitle, writeTotalHours,
 } from './writer.js';
 import { getBlocksForTheMonth } from './block.js';
 import { styleBlock } from './styler.js';
@@ -23,7 +24,10 @@ const generateWb = (month: number, names: string[], config: Configs): Workbook =
     blocks.forEach((block) => writeBlock(sheet, block, config.formulas));
     blocks.forEach((block) => styleBlock(sheet, block));
     const formulaCells = config.formulas.map((f, i) => ({ name: f.name, cells: blocks.map((b) => b.formulaCells[i]) }));
-    writeTotalHours(sheet, name, config.titleCell, formulaCells);
+    const totalHoursCells = getTotalHoursCells(config.totalsStartCell, config.formulas.map((f) => f.name));
+    writeTitle(sheet, name, config.titleCell);
+    writeTotalHours(sheet, formulaCells, totalHoursCells);
+    writeSummary(sheet, config.summary.startCell, config.summary.aggregators, totalHoursCells);
   });
   return wb;
 };

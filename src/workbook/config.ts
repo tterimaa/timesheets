@@ -25,6 +25,8 @@ export const COLUMNS = [
 
 const START_ROW = 5;
 const TITLE_CELL = 'A1';
+const SUMMARY_START_CELL = 'A2';
+const TOTALS_START_CELL = 'K1';
 
 export interface Formula {
   id: number,
@@ -33,17 +35,30 @@ export interface Formula {
   disabledForCols: string[]
 }
 
+export interface Aggregator {
+  functionIndexes: number[], // [1, 2] == total of function 1 + total of function 2
+  header: string,
+}
+
 export interface Configs {
   days: number;
   formulas: Array<Formula>;
   gap: number;
   startRow: number,
   titleCell: string,
+  totalsStartCell: string,
+  summary: Summary
+}
+
+interface Summary {
+  startCell: string,
+  aggregators: Aggregator[]
 }
 
 export interface ConfigsInput {
   days?: number;
   formulas?: Array<FormulaInput>;
+  summary: Summary
 }
 
 const defaultConfig = {
@@ -87,11 +102,17 @@ export const getConfigs = (configsInput: ConfigsInput | undefined): Configs => {
   const gap = formulas.length + 3;
   const startRow = START_ROW;
   const titleCell = TITLE_CELL;
+  const totalsStartCell = TOTALS_START_CELL;
+  const summaryStartCell = SUMMARY_START_CELL;
+  const aggregators = configsInput?.summary.aggregators ? configsInput.summary.aggregators : [];
+  const summary = { startCell: summaryStartCell, aggregators };
   return {
     days,
     formulas,
     gap,
     startRow,
     titleCell,
+    totalsStartCell,
+    summary,
   };
 };

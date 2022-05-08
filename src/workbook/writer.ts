@@ -4,7 +4,7 @@ import {
   totalSumFormula, writeFormula,
 } from './formulas.js';
 import { Block } from './block.js';
-import { Formula } from './config.js';
+import { Aggregator, Formula } from './config.js';
 
 const writeInputDataValidation = (sheet: Worksheet, cell: string) => {
   const startInput = sheet.getCell(getNeighbourCell(cell, 0, 2));
@@ -51,12 +51,37 @@ interface FormulaToOutputCells {
   cells: Array<string>,
 }
 
-const writeTotalHours = (sheet: Worksheet, name: string, cell: string, formulaToOutputCells: Array<FormulaToOutputCells>) => {
+interface TotalCells {
+  value: string,
+  header: string,
+}
+
+const getTotalHoursCells = (startCell: string, formulaNames: string[]): TotalCells[] => formulaNames.map((name, i) => ({
+  value: getNeighbourCell(startCell, 0, i + 1),
+  header: getNeighbourCell(startCell, 1, i + 1),
+}));
+
+const writeTitle = (sheet: Worksheet, name: string, cell: string) => {
   sheet.getCell(cell).value = name;
+};
+
+const writeTotalHours = (sheet: Worksheet, formulaToOutputCells: Array<FormulaToOutputCells>, totalHoursCells: TotalCells[]) => {
   formulaToOutputCells.forEach((f, i) => {
-    sheet.getCell(getNeighbourCell(cell, 0, i + 1)).value = { formula: totalSumFormula(f.cells), date1904: false };
-    sheet.getCell(getNeighbourCell(cell, 1, i + 1)).value = f.name;
+    sheet.getCell(totalHoursCells[i].value).value = { formula: totalSumFormula(f.cells), date1904: false };
+    sheet.getCell(totalHoursCells[i].header).value = f.name;
   });
 };
 
-export { writeTotalHours, writeBlock };
+const writeSummary = (sheet: Worksheet, titleCell: string, aggregators: Aggregator[], totalHoursCells: TotalCells[]) => {
+  aggregators.forEach((a, i) => {
+    sheet.getCell(getNeighbourCell(titleCell, 0, i)).value = {
+      formula: totalSumFormula(a.functionIndexes.map((idx) => totalHoursCells[idx].value)),
+      date1904: false,
+    };
+    sheet.getCell(getNeighbourCell(titleCell, 1, i)).value = a.header;
+  });
+};
+
+export {
+  writeTotalHours, writeBlock, getTotalHoursCells, writeSummary, writeTitle,
+};
