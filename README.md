@@ -9,6 +9,7 @@ Generate excel workbooks for logging monthly work-hours. For personal use or to 
 `POST localhost:8080/` with request body
 ```
 {
+    "year": 2022
     "month": 4,
     "names": ["John","Jane"]
 }
@@ -29,6 +30,7 @@ The user also wants to summarize the hours that will be paid by the same rates (
 The following configuration would output a suitable sheet for the company:
 ```
 {
+    "year": 2022
     "month": 4,
     "names": ["John","Jane"],
     "config": {
@@ -75,6 +77,7 @@ User can configure the workbook in several different ways:
 User can exclude weekdays from the sheet if e.g. employees are not working on Sundays.
 ```
 {
+    "year": 2022
     "month": 4,
     "names": ["John","Jane"],
     "days": 6
@@ -86,17 +89,21 @@ This configuration would exclude Sundays from the sheet.
 User can define the locale used with the weekday formatting. Other values like the formula names and the summary headers are not affected by the locale but can be customized.
 ```
 {
+    "year": 2022
     "month": 4,
     "names": ["John","Jane"]
     "config": {
         "locale": "fi-FI
     }
+    "startHeader": "Start",
+    "endHeader": "Finish",
 }
 ```
 
 ### Formulas that calculate daily hours
 ```
 {
+    "year": 2022
     "month": 4,
     "names": ["John","Jane"]
     "config": {
@@ -130,6 +137,7 @@ The default configuration includes 'DAY' and 'EVENING' formulas.
 ### Exclude some formulas on selected columns (weekdays)
 ```
 {
+    "year": 2022
     "month": 4,
     "names": ["John", "Jane"],
     "config": {
@@ -159,6 +167,7 @@ This example represents a use-case where user wants to only calculate all hours 
 If user wants a customized summary about the results of the defined formulas, it's possible to define 'aggregators':
 ```
 {
+    "year: 2022
     "month": 4,
     "names": ["John","Jane"],
     "config": {

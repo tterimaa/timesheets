@@ -1,8 +1,11 @@
 import { ErrorRequestHandler, Request, Router } from 'express';
+import path from 'path';
+import fs from 'fs';
 import { ConfigsInput, getConfigs } from '../workbook/config.js';
 import generateWb from '../workbook/generator.js';
 
 interface RequestBody {
+  year: number;
   month: number;
   names: string[];
   config?: ConfigsInput;
@@ -18,12 +21,25 @@ export default (app: Router) => {
     res.send('Hello World');
   });
 
-  app.post('/', (req: Request<{}, {}, RequestBody>, res, next) => {
-    const { names, month, config } = req.body;
-    const wb = generateWb(month, names, getConfigs(config));
-    wb.xlsx.writeFile('./workbooks/api-test.xlsx').then(() => {
-      res.sendFile('/Users/tterimaa/code/projects/timesheets/workbooks/api-test.xlsx');
-    }).catch((err) => next(err));
+  app.post('/', async (req: Request<{}, {}, RequestBody>, res, next) => {
+    const {
+      names, month, year, config,
+    } = req.body;
+    try {
+      const wb = generateWb(month, names, getConfigs(config));
+      const locale = config?.locale ? config.locale : 'en-US';
+      const date = new Date(year, month);
+      const fileName = `${date.toLocaleString(locale, { month: 'long' })}${year}.xlsx`;
+      const directory = path.resolve('./workbooks');
+      const absolutePath = `${directory}/${fileName}`;
+      await wb.xlsx.writeFile(absolutePath);
+      res.download(absolutePath, fileName, (err) => {
+        fs.promises.unlink(absolutePath);
+        if (err) throw err;
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   app.use(errorHandler);
