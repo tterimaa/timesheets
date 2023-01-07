@@ -1,15 +1,12 @@
-import { ErrorRequestHandler, Request, Router } from 'express';
+import {
+  ErrorRequestHandler, Request, Response, Router,
+} from 'express';
 import path from 'path';
 import fs from 'fs';
-import { ConfigsInput, getConfigs } from '../workbook/config.js';
+import { getConfigs } from '../workbook/config.js';
 import generateWb from '../workbook/generator.js';
-
-interface RequestBody {
-  year: number;
-  month: number;
-  names: string[];
-  config?: ConfigsInput;
-}
+import { RequestBody, RequestBodySchema } from '../model/request.js';
+import { validate } from './middleware.js';
 
 const errorHandler: ErrorRequestHandler = (err, req, res) => {
   console.error(err.stack);
@@ -21,7 +18,7 @@ export default (app: Router) => {
     res.send('Hello World');
   });
 
-  app.post('/', async (req: Request<{}, {}, RequestBody>, res, next) => {
+  app.post('/', validate(RequestBodySchema), async (req: Request<{}, {}, RequestBody>, res: Response, next) => {
     const {
       names, month, year, config,
     } = req.body;

@@ -4,7 +4,8 @@ import {
   totalSumFormula, writeFormula,
 } from './formulas.js';
 import { Block } from './block.js';
-import { Aggregator, Formula } from './config.js';
+import { Formula } from './config.js';
+import { Aggregator } from '../model/request.js';
 
 const writeInputDataValidation = (sheet: Worksheet, cell: string) => {
   const startInput = sheet.getCell(getNeighbourCell(cell, 0, 2));

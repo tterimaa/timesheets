@@ -1,6 +1,6 @@
 import express from 'express';
 import routes from './api/routes.js';
-import middleware from './api/middleware.js';
+import { middleware } from './api/middleware.js';
 
 const PORT = 8080;
 

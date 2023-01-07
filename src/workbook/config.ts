@@ -1,6 +1,10 @@
 import {
+  Aggregator,
+  ConfigsInput, FormulaInput, FormulaType,
+} from '../model/request.js';
+import {
   allHoursFormula,
-  dayHoursFormula, eveningHoursFormula, FormulaFunction, FormulaInput, FORMULA_TYPE,
+  dayHoursFormula, eveningHoursFormula, FormulaFunction,
 } from './formulas.js';
 
 export enum DAYS_TO_COL {
@@ -38,9 +42,9 @@ export interface Formula {
   disabledForCols: string[]
 }
 
-export interface Aggregator {
-  functionIndexes: number[], // [1, 2] == total of function 1 + total of function 2
-  header: string,
+export interface Summary {
+  startCell: string,
+  aggregators: Array<Aggregator>
 }
 
 export interface Configs {
@@ -54,20 +58,6 @@ export interface Configs {
   totalsStartCell: string,
   summary: Summary
   locale: string,
-}
-
-interface Summary {
-  startCell: string,
-  aggregators: Aggregator[]
-}
-
-export interface ConfigsInput {
-  days?: number;
-  formulas?: Array<FormulaInput>;
-  startHeader?: string,
-  endHeader?: string,
-  summary?: Summary
-  locale?: string
 }
 
 const defaultConfig = {
@@ -88,13 +78,13 @@ const defaultConfig = {
   ],
 };
 
-const getFormula = (type: FORMULA_TYPE) => {
+const getFormula = (type: FormulaType) => {
   switch (type) {
-    case FORMULA_TYPE.DAY:
+    case 'DAY':
       return dayHoursFormula;
-    case FORMULA_TYPE.EVENING:
+    case 'EVENING':
       return eveningHoursFormula;
-    case FORMULA_TYPE.ALL:
+    case 'ALL':
       return allHoursFormula;
     default:
       throw Error('Unknown formula type: should be DAY, EVENING or ALL');
