@@ -1,0 +1,41 @@
+curl -X POST http://localhost:8080 \
+     -H "Content-Type: application/json" \
+     -d '{
+           "year": 2025,
+           "month": 11,
+           "names": ["Fransede","Salla"],
+           "config": {
+               "formulas": [
+                   {
+                       "type": "DAY",
+                       "name": "Päivätunnit",
+                       "disabledForCols": ["K", "M"]
+                   },
+                   {
+                       "type": "EVENING",
+                       "name": "Iltatunnit",
+                       "disabledForCols": ["K", "M"]
+                   },
+                   {
+                       "type": "ALL",
+                       "name": "Lauantai ja Sunnuntai",
+                       "disabledForCols": ["A", "C", "E", "G", "I"]
+                   }
+               ],
+               "locale": "fi-FI",
+               "startHeader": "Alkaa",
+               "endHeader": "Loppuu",
+               "summary": {
+                   "aggregators": [
+                       {
+                           "functionIndexes": [1],
+                           "header": "Kaikki päivätunnit"
+                       },
+                       {
+                           "functionIndexes": [1,2],
+                           "header": "Illat + Lauantai ja Sunnuntai"
+                       }
+                   ]
+               }
+           }
+     }' -o downloaded_file.xlsx
